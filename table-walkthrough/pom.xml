@@ -31,7 +31,11 @@ under the License.
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<flink.version>1.13.1</flink.version>
-		<java.version>1.8</java.version>
+        <commons-collections.version>3.2.2</commons-collections.version>
+        <!-- fixme: rather high version -->
+        <hadoop.version>3.1.1</hadoop.version>
+        <hadoop.hdfs-client.version>${hadoop.version}</hadoop.hdfs-client.version>
+        <java.version>1.8</java.version>
 		<scala.binary.version>2.12</scala.binary.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
@@ -52,7 +56,80 @@ under the License.
 	</repositories>
 
 	<dependencies>
-		<!-- These dependencies are provided, because they should not be packaged into the JAR file. -->
+        <!-- kensu -->
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-connector-kafka_2.12</artifactId>
+            <version>${flink.version}</version>
+            <scope>provided</scope>
+        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.apache.hadoop</groupId>-->
+<!--            <artifactId>hadoop-client</artifactId>-->
+<!--            <version>${hadoop.version}</version>-->
+<!--            <exclusions>-->
+<!--                <exclusion>-->
+<!--                    <groupId>org.mortbay.jetty</groupId>-->
+<!--                    <artifactId>*</artifactId>-->
+<!--                </exclusion>-->
+<!--            </exclusions>-->
+<!--        </dependency>-->
+
+
+        <!-- hadoop -->
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+            <version>${hadoop.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.servlet</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>tomcat</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.mortbay.jetty</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.codehaus.jackson</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.htrace</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-httpclient</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- FIXME: we get jarhell if added -->
+<!--        <dependency>-->
+<!--            <groupId>commons-collections</groupId>-->
+<!--            <artifactId>commons-collections</artifactId>-->
+<!--            <version>${commons-collections.version}</version>-->
+<!--        </dependency>-->
+
+
+        <!-- These dependencies are provided, because they should not be packaged into the JAR file. -->
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-table-api-java</artifactId>
