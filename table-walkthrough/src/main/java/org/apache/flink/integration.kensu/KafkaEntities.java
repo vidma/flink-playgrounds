@@ -32,32 +32,33 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+import static org.apache.flink.integration.kensu.KensuFlinkHook.logInfo;
+
 public class KafkaEntities {
 
     private static final Logger LOG = LoggerFactory.getLogger(KafkaEntities.class);
 
     public static void addKafkaSourceEntity(FlinkKafkaConsumer kafkaSource, List<String> ret, String metadataNamespace) {
-        KensuFlinkHook.logInfo("kafkaSource:"+kafkaSource.toString() + ":\n");
+        logInfo("kafkaSource:"+kafkaSource.toString() + ":\n");
         // FIXME: extract using reflection?
-//        KafkaTopicsDescriptor topicsDescriptor = kafkaSource.getTopicsDescriptor();
-//        Properties kafkaProps = kafkaSource.getProperties();
-//
-//        List<String> topics = topicsDescriptor.isFixedTopics() ? topicsDescriptor.getFixedTopics() : Collections.singletonList(topicsDescriptor.getTopicPattern().toString());
-//        String uri = kafkaProps.getProperty("bootstrap.servers");
-//
-//        for (String topic : topics) {
-//            AtlasEntity e = new AtlasEntity(FlinkDataTypes.KAFKA_TOPIC.getName());
-//
-//            e.setAttribute("topic", topic);
-//            e.setAttribute("uri", uri);
-//            e.setAttribute(AtlasClient.REFERENCEABLE_ATTRIBUTE_NAME, getKafkaTopicQualifiedName(metadataNamespace, topic));
-//            e.setAttribute(AtlasClient.NAME, topic);
-//            ret.add(e);
-//        }
+        logInfo("kafkaSource.getProducedType():"+ kafkaSource.getProducedType().toString());
+        //kafkaSource.getDeserializer();
+        KafkaTopicsDescriptor topicsDescriptor = kafkaSource.getTopicsDescriptor();
+        Properties kafkaProps = kafkaSource.getProperties();
+
+        List<String> topics = topicsDescriptor.isFixedTopics() ? topicsDescriptor.getFixedTopics() : Collections.singletonList(topicsDescriptor.getTopicPattern().toString());
+        String uri = kafkaProps.getProperty("bootstrap.servers");
+
+        for (String topic : topics) {
+            String e = String.format("KENSU KafkaSource(topic=%s, uri=%s, TopicQualifiedName=%s)",
+                    topic, uri, getKafkaTopicQualifiedName(metadataNamespace, topic));
+            logInfo(e);
+            ret.add(e);
+        }
     }
 
     public static void addKafkaSinkEntity(FlinkKafkaProducer kafkaSink, List<String> ret, String metadataNamespace) {
-        KensuFlinkHook.logInfo("kafkaSink:"+kafkaSink.toString() + ":\n");
+        logInfo("kafkaSink:"+kafkaSink.toString() + ":\n");
 //        KafkaTopicsDescriptor topicsDescriptor = kafkaSink.getTopicsDescriptor();
 //        Properties kafkaProps = kafkaSink.getProperties();
 //

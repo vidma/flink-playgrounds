@@ -3,11 +3,8 @@ package org.apache.flink.integration.kensu;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.dag.Pipeline;
-import org.apache.flink.core.execution.DetachedJobExecutionResult;
 import org.apache.flink.core.execution.JobClient;
 import org.apache.flink.core.execution.JobListener;
-import org.apache.flink.runtime.minicluster.MiniClusterJobClient;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink;
 import org.apache.flink.streaming.api.functions.source.ContinuousFileMonitoringFunction;
@@ -27,10 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -137,9 +131,39 @@ public class KensuFlinkHook implements JobListener {
 
         addSinkEntities(sinks);
         logInfo("found sources:");
-        sources.forEach((s) -> KensuFlinkHook.logInfo(s.toString()));
+        sources.forEach(KensuFlinkHook::logSource);
         logInfo("found sinks:");
-        sinks.forEach((s) -> KensuFlinkHook.logInfo(s.toString()));
+        sinks.forEach(KensuFlinkHook::logSink);
+    }
+
+    static void logVarWithType(Object s) {
+        String msg = "";
+        if (s != null) {
+            msg = " -> " + s.toString() + "[class=" + s.getClass().toString() + "]";
+        } else {
+            msg = " -> null";
+        }
+        KensuFlinkHook.logInfo(msg);
+
+    }
+
+    static void logSink(StreamNode s) {
+        KensuFlinkHook.logInfo("sink:");
+        logVarWithType(s);
+        KensuFlinkHook.logInfo("sink input format:");
+        logVarWithType(s.getInputFormat());
+        KensuFlinkHook.logInfo("sink output format:");
+        logVarWithType(s.getOutputFormat());
+    }
+
+    static void logSource(StreamNode s) {
+        KensuFlinkHook.logInfo("source:");
+        logVarWithType(s);
+        KensuFlinkHook.logInfo("source input format:");
+        logVarWithType(s.getInputFormat());
+        KensuFlinkHook.logInfo("source output format:");
+        logVarWithType(s.getOutputFormat());
+        s.toString();
     }
 
     private void addSourceEntities(List<StreamNode> sources) {
@@ -165,7 +189,9 @@ public class KensuFlinkHook implements JobListener {
         List<String> ret = new ArrayList<>();
 
         String sourceClass = sourceFunction.getClass().getName();
-        LOG.info("found source="+sourceClass);
+        logInfo("sourceFunction:");
+        KensuFlinkHook.logVarWithType(sourceFunction);
+
         if (sourceClass.equals("org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer")) {
             KafkaEntities.addKafkaSourceEntity((FlinkKafkaConsumer<?>) sourceFunction, ret, getMetadataNamespace());
         } else if (sourceClass.equals("org.apache.flink.streaming.api.functions.source.ContinuousFileMonitoringFunction")) {
@@ -182,12 +208,14 @@ public class KensuFlinkHook implements JobListener {
         for (StreamNode sink : sinks) {
             // Blink changes something?
             StreamOperator<?> sinkOp = sink.getOperator();
+            logInfo("addSinkEntities - sinkOp = " + sinkOp.toString() + "[class="+sinkOp.getClass().toString()+"]");
             if (sinkOp instanceof StreamSink) {
-                List<String> dsEntities = createSinkEntity(((StreamSink<?>)sinkOp).getUserFunction());
+                List<String> dsEntities = createSinkEntity(((StreamSink<?>)sinkOp).getUserFunction(), sink);
                 outputs.addAll(dsEntities);
             } else if (sinkOp instanceof SinkOperator) {
                 // FIXME: maybe use reflection here so not to force dependency, or is it fine ?
-                List<String> dsEntities = createSinkEntity(((SinkOperator)sinkOp).getUserFunction());
+                SinkOperator sinkOperator = (SinkOperator)sinkOp;
+                List<String> dsEntities = createSinkEntity(sinkOperator.getUserFunction(), sink);
                 outputs.addAll(dsEntities);
             } else {
                 logInfo("sink.getOperator() is not StreamSink: "+ sinkOp.toString());
@@ -198,14 +226,16 @@ public class KensuFlinkHook implements JobListener {
         //flinkApp.setRelationshipAttribute("outputs", AtlasTypeUtil.getAtlasRelatedObjectIds(outputs, RELATIONSHIP_PROCESS_DATASET_OUTPUTS));
     }
 
-    private List<String> createSinkEntity(SinkFunction<?> sinkFunction) {
+    private List<String> createSinkEntity(SinkFunction<?> sinkFunction, StreamNode sink) {
         List<String> ret = new ArrayList<>();
         String sinkClass = sinkFunction.getClass().getName();
-        logInfo("found sink="+sinkClass);
+        logInfo("found sinkClass="+sinkClass);
         if (sinkClass.equals("org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer")) {
             KafkaEntities.addKafkaSinkEntity((FlinkKafkaProducer<?>) sinkFunction, ret, getMetadataNamespace());
         } else if (sinkClass.equals("org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink")) {
             FileEntities.addStreamFileSinkEntity((StreamingFileSink<?>) sinkFunction, ret, getMetadataNamespace());
+        } else if (JdbcEntities.matchesSink(sinkFunction, sinkClass)) {
+            JdbcEntities.addSinkEntity(sinkFunction, sink, ret);
         } else {
             logInfo("unknown sink entity, sinkClass="+sinkClass);
         }
@@ -214,9 +244,9 @@ public class KensuFlinkHook implements JobListener {
         return ret;
     }
 
+    // Atlas thing, so we don't care?
     private String getMetadataNamespace(){
-        // FIXME
-        return "?";
+        return "";
     }
 
 }
