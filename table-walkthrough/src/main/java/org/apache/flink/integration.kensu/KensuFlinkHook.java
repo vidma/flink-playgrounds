@@ -65,8 +65,13 @@ public class KensuFlinkHook implements JobListener {
         }
         StreamGraph streamGraph = null;
         Pipeline p = jobClient.getPipeline();
-        if (p instanceof StreamGraph){
+        if (p == null){
+            logInfo("onJobSubmitted got NULL pipeline");
+        } else if (p instanceof StreamGraph){
             streamGraph = (StreamGraph) p;
+        } else {
+            logInfo("onJobSubmitted got pipeline that is not streamGraph: {}",
+                    p.getClass().toString(), p.toString());
         }
         // FIXME: delete - seem like we don't need this anymore! cool?
         // StreamGraph streamGraph = (StreamGraph) jobClient.getPipeline();
