@@ -27,9 +27,9 @@ ENV FLINK_TGZ_URL="https://repository.cloudera.com/artifactory/libs-release-loca
 WORKDIR /opt/flink
 RUN rm -Rf /opt/flink/*
 RUN wget -O /tmp/flink.tgz "$FLINK_TGZ_URL"; \
-tar -xf /tmp/flink.tgz --strip-components=1; \
-    rm flink.tgz;    \
-    chown -R flink:flink
+    tar -xf /tmp/flink.tgz --strip-components=1; \
+    rm /tmp/flink.tgz; \
+    chown -R flink:flink .
 
 # Download connector libraries
 RUN wget -P /opt/flink/lib/ https://repository.cloudera.com/artifactory/cloudera-repos/org/apache/flink/flink-sql-connector-kafka_2.12/1.13.2-csa1.5.3.1/flink-sql-connector-kafka_2.12-1.13.2-csa1.5.3.1.jar; \
