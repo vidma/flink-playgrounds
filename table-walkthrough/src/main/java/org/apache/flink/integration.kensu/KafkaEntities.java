@@ -37,7 +37,7 @@ public class KafkaEntities {
     private static final Logger LOG = LoggerFactory.getLogger(KafkaEntities.class);
 
     public static void addKafkaSourceEntity(FlinkKafkaConsumer kafkaSource, List<String> ret, String metadataNamespace) {
-        LOG.warn("kafkaSource:"+kafkaSource.toString() + ":\n");
+        KensuFlinkHook.logInfo("kafkaSource:"+kafkaSource.toString() + ":\n");
         // FIXME: extract using reflection?
 //        KafkaTopicsDescriptor topicsDescriptor = kafkaSource.getTopicsDescriptor();
 //        Properties kafkaProps = kafkaSource.getProperties();
@@ -57,7 +57,7 @@ public class KafkaEntities {
     }
 
     public static void addKafkaSinkEntity(FlinkKafkaProducer kafkaSink, List<String> ret, String metadataNamespace) {
-        LOG.warn("kafkaSink:"+kafkaSink.toString() + ":\n");
+        KensuFlinkHook.logInfo("kafkaSink:"+kafkaSink.toString() + ":\n");
 //        KafkaTopicsDescriptor topicsDescriptor = kafkaSink.getTopicsDescriptor();
 //        Properties kafkaProps = kafkaSink.getProperties();
 //
