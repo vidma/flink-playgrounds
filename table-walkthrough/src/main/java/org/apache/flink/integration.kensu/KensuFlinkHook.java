@@ -68,15 +68,10 @@ public class KensuFlinkHook implements JobListener {
         if (p instanceof StreamGraph){
             streamGraph = (StreamGraph) p;
         }
-        if (throwable != null) {
-            LOG.error("Job failed to submit", throwable);
-            return;
-        }
         // FIXME: delete - seem like we don't need this anymore! cool?
         // StreamGraph streamGraph = (StreamGraph) jobClient.getPipeline();
-
         try {
-            if (jobClient != null && streamGraph != null) {
+            if (streamGraph != null) {
                 logInfo("Collecting metadata for a new Flink Application: {}", streamGraph.getJobName());
                 flinkApp = createAppEntity(streamGraph, jobClient.getJobID());
                 String str = "FlinkAPP: " + flinkApp;
@@ -93,6 +88,10 @@ public class KensuFlinkHook implements JobListener {
         } catch (Exception e) {
             throw new RuntimeException("Atlas hook is unable to process the application.", e);
         }
+//        if (throwable != null) {
+//            LOG.error("Job failed to submit", throwable);
+//            return;
+//        }
     }
 
     @Override

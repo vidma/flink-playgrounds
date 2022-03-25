@@ -31,6 +31,14 @@ RUN wget -O /tmp/flink.tgz "$FLINK_TGZ_URL"; \
     rm /tmp/flink.tgz; \
     chown -R flink:flink .
 
+# remove extra uneeded jars (present only in CDH distro) which currently cause problems \
+#    when some other CDH/hadoop jars are not installed
+RUN rm -f lib/flink-azure-fs-hadoop-1.13.2-csa1.5.3.1.jar
+RUN rm -f lib/flink-s3-fs-hadoop-1.13.2-csa1.5.3.1.jar
+RUN rm -f lib/flink-kerberos-auth-handler-1.0.jar
+RUN rm -f lib/flink-metrics-kafka-1.13.2-csa1.5.3.1.jar
+RUN rm -f gateway-cloud-bindings-shaded-1.13.2-csa1.5.3.1.jar
+
 # Download connector libraries
 RUN wget -P /opt/flink/lib/ https://repository.cloudera.com/artifactory/cloudera-repos/org/apache/flink/flink-sql-connector-kafka_2.12/1.13.2-csa1.5.3.1/flink-sql-connector-kafka_2.12-1.13.2-csa1.5.3.1.jar; \
     wget -P /opt/flink/lib/ https://repository.cloudera.com/artifactory/libs-release-local/org/apache/flink/flink-connector-jdbc_2.12/1.13.2-csa1.5.3.1/flink-connector-jdbc_2.12-1.13.2-csa1.5.3.1.jar; \
@@ -48,7 +56,7 @@ COPY ./src /opt/src
 WORKDIR /opt
 RUN --mount=type=cache,target=/root/.m2,rw  mvn clean install -Dmaven.test.skip
 
-FROM cdh-flink
+FROM cdh-flink AS cdh-table-walkthrough
 
 COPY --from=builder /opt/target/spend-report-*.jar /opt/flink/usrlib/spend-report.jar
 
