@@ -7,7 +7,7 @@ import org.apache.flink.streaming.api.functions.source.ContinuousFileMonitoringF
 
 //FIXME: import org.apache.atlas.utils.HdfsNameServiceResolver;
 //import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.fs.Path;
+//import org.apache.hadoop.fs.Path;
 
 import java.util.List;
 

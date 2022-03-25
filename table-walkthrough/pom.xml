@@ -30,7 +30,7 @@ under the License.
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<flink.version>1.13.1</flink.version>
+		<flink.version>1.13.2-csa1.5.3.1</flink.version>
         <commons-collections.version>3.2.2</commons-collections.version>
         <!-- fixme: rather high version -->
         <hadoop.version>3.1.1</hadoop.version>
@@ -53,6 +53,10 @@ under the License.
 				<enabled>true</enabled>
 			</snapshots>
 		</repository>
+        <repository>
+            <id>cloudera</id>
+            <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+        </repository>
 	</repositories>
 
 	<dependencies>
@@ -63,6 +67,11 @@ under the License.
             <version>${flink.version}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+    <groupId>org.slf4j</groupId>
+    <artifactId>slf4j-api</artifactId>
+    <version>1.7.28</version>
+</dependency>
 <!--        <dependency>-->
 <!--            <groupId>org.apache.hadoop</groupId>-->
 <!--            <artifactId>hadoop-client</artifactId>-->
@@ -77,6 +86,9 @@ under the License.
 
 
         <!-- hadoop -->
+                <!-- FIXME: we get jarhell if added -->
+
+        <!--
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
@@ -119,9 +131,8 @@ under the License.
                     <artifactId>junit</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
+        </dependency> -->
 
-        <!-- FIXME: we get jarhell if added -->
 <!--        <dependency>-->
 <!--            <groupId>commons-collections</groupId>-->
 <!--            <artifactId>commons-collections</artifactId>-->

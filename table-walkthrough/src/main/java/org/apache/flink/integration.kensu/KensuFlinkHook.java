@@ -2,9 +2,11 @@ package org.apache.flink.integration.kensu;
 
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.JobID;
+import org.apache.flink.api.dag.Pipeline;
 import org.apache.flink.core.execution.DetachedJobExecutionResult;
 import org.apache.flink.core.execution.JobClient;
 import org.apache.flink.core.execution.JobListener;
+import org.apache.flink.runtime.minicluster.MiniClusterJobClient;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink;
@@ -16,11 +18,15 @@ import org.apache.flink.streaming.api.operators.StreamSink;
 import org.apache.flink.streaming.api.operators.StreamSource;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 //import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -32,6 +38,7 @@ import java.util.stream.Collectors;
 public class KensuFlinkHook implements JobListener {
 
     //public static final Logger LOG = org.slf4j.LoggerFactory.getLogger(FlinkAtlasHook.class);
+    private static final Logger LOG = LoggerFactory.getLogger(KensuFlinkHook.class);
 
     public static final String RELATIONSHIP_DATASET_PROCESS_INPUTS = "dataset_process_inputs";
     public static final String RELATIONSHIP_PROCESS_DATASET_OUTPUTS = "process_dataset_outputs";
@@ -39,9 +46,10 @@ public class KensuFlinkHook implements JobListener {
     private String flinkApp;
 //    private AtlasEntity.AtlasEntitiesWithExtInfo entity;
 
-    private void logInfo(String msgFmt, String... params){
+    private static void logInfo(String msgFmt, String... params){
         String msg = String.format(msgFmt, params);
-        System.out.println(msg);
+        System.out.println("org.apache.flink.integration.kensu - logInfo - " + msg);
+        LOG.warn(msg);
     }
 
     private String getUser(){
@@ -50,21 +58,36 @@ public class KensuFlinkHook implements JobListener {
 
     @Override
     public void onJobSubmitted(@Nullable JobClient jobClient, @Nullable Throwable throwable) {
-        StreamExecutionEnvironment senv = StreamExecutionEnvironment.getExecutionEnvironment();
-        StreamGraph streamGraph = senv.getStreamGraph();
-        System.out.println("StreamExecutionEnvironment.getExecutionPlan:" + senv.getExecutionPlan());
-
+        logInfo("in KensuFlinkHook.onJobSubmitted");
+        if (jobClient == null){
+            logInfo("onJobSubmitted got NULL jobClient");
+            return;
+        }
+        StreamGraph streamGraph = null;
+        Pipeline p = jobClient.getPipeline();
+        if (p instanceof StreamGraph){
+            streamGraph = (StreamGraph) p;
+        }
         if (throwable != null) {
+            LOG.error("Job failed to submit", throwable);
             return;
         }
         // FIXME: delete - seem like we don't need this anymore! cool?
         // StreamGraph streamGraph = (StreamGraph) jobClient.getPipeline();
-        logInfo("Collecting metadata for a new Flink Application: {}", streamGraph.getJobName());
 
         try {
-
-            flinkApp = createAppEntity(streamGraph, jobClient.getJobID());
-            addInputsOutputs(streamGraph);
+            if (jobClient != null && streamGraph != null) {
+                logInfo("Collecting metadata for a new Flink Application: {}", streamGraph.getJobName());
+                flinkApp = createAppEntity(streamGraph, jobClient.getJobID());
+                String str = "FlinkAPP: " + flinkApp;
+                BufferedWriter writer = new BufferedWriter(new FileWriter("/tmp/kensu_flink.log", true));
+                writer.append(' ');
+                writer.append(str);
+                writer.close();
+                addInputsOutputs(streamGraph);
+            }
+            else
+                flinkApp = "???";
 
             //notifyEntities(Collections.singletonList(new HookNotification.EntityCreateRequestV2(getUser(), entity)), null);
         } catch (Exception e) {
@@ -77,7 +100,7 @@ public class KensuFlinkHook implements JobListener {
 //        if (throwable != null || jobExecutionResult instanceof DetachedJobExecutionResult) {
 //            return;
 //        }
-        System.out.println("ENDED flink APP:" + flinkApp +
+        logInfo("ENDED flink APP:" + flinkApp +
                 "\n------\nendTime:" +new Date(System.currentTimeMillis()));
         //flinkApp.setAttribute("endTime", );
         //notifyEntities(Collections.singletonList(new HookNotification.EntityCreateRequestV2(getUser(), entity)), null);
@@ -89,7 +112,7 @@ public class KensuFlinkHook implements JobListener {
                 "\nstartTime:" + new Date(System.currentTimeMillis()) +
                 //flinkApp.setAttribute(AtlasConstants.CLUSTER_NAME_ATTRIBUTE, getMetadataNamespace());
                 "\nOWNER:" + getUser();
-        System.out.println("STARTED APP: " + appInfo);
+        logInfo("STARTED APP: " + appInfo);
         return appInfo;
     }
 
@@ -137,7 +160,7 @@ public class KensuFlinkHook implements JobListener {
             FileEntities.addMonitorSourceEntity((ContinuousFileMonitoringFunction<?>) sourceFunction, ret, getMetadataNamespace());
         }
 
-        ret.forEach(System.out::println);
+        ret.forEach(LOG::warn);
         return ret;
     }
 
@@ -168,7 +191,7 @@ public class KensuFlinkHook implements JobListener {
         }
 
         //ret.forEach(e -> e.setAttribute(AtlasClient.OWNER, getUser()));
-        ret.forEach(System.out::println);
+        ret.forEach(KensuFlinkHook::logInfo);
         return ret;
     }
 

@@ -18,11 +18,15 @@
 
 package org.apache.flink.playgrounds.spendreport;
 
+
 import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.Table;
 import org.apache.flink.table.api.TableEnvironment;
-import org.apache.flink.table.api.Tumble;
+
 import org.apache.flink.table.expressions.TimeIntervalUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 import static org.apache.flink.table.api.Expressions.*;
 
@@ -43,6 +47,8 @@ public class SpendReport {
     public static void main(String[] args) throws Exception {
         EnvironmentSettings settings = EnvironmentSettings.newInstance().build();
         TableEnvironment tEnv = TableEnvironment.create(settings);
+        final Logger LOG = LoggerFactory.getLogger(SpendReport.class);
+        LOG.info("Starting job");
 
         tEnv.executeSql("CREATE TABLE transactions (\n" +
                 "    account_id  BIGINT,\n" +

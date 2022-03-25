@@ -24,6 +24,8 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumerBase;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.streaming.connectors.kafka.internals.KafkaTopicsDescriptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,8 +34,10 @@ import java.util.Properties;
 
 public class KafkaEntities {
 
+    private static final Logger LOG = LoggerFactory.getLogger(KafkaEntities.class);
+
     public static void addKafkaSourceEntity(FlinkKafkaConsumer kafkaSource, List<String> ret, String metadataNamespace) {
-        System.out.println("kafkaSource:"+kafkaSource.toString() + ":\n");
+        LOG.warn("kafkaSource:"+kafkaSource.toString() + ":\n");
         // FIXME: extract using reflection?
 //        KafkaTopicsDescriptor topicsDescriptor = kafkaSource.getTopicsDescriptor();
 //        Properties kafkaProps = kafkaSource.getProperties();
@@ -53,7 +57,7 @@ public class KafkaEntities {
     }
 
     public static void addKafkaSinkEntity(FlinkKafkaProducer kafkaSink, List<String> ret, String metadataNamespace) {
-        System.out.println("kafkaSink:"+kafkaSink.toString() + ":\n");
+        LOG.warn("kafkaSink:"+kafkaSink.toString() + ":\n");
 //        KafkaTopicsDescriptor topicsDescriptor = kafkaSink.getTopicsDescriptor();
 //        Properties kafkaProps = kafkaSink.getProperties();
 //
