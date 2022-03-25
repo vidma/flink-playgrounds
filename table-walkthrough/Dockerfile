@@ -16,18 +16,8 @@
 # limitations under the License.
 ################################################################################
 
-FROM maven:3.6-jdk-8-slim AS builder
 
-COPY ./pom.xml /opt/pom.xml
-COPY ./src /opt/src
-
-# faster rebuilds (~10x?)
-WORKDIR /opt
-RUN --mount=type=cache,target=/root/.m2,rw  mvn clean install -Dmaven.test.skip
-
-
-FROM apache/flink:1.13.1-scala_2.12-java8
-
+FROM apache/flink:1.13.1-scala_2.12-java8 AS cdh-flink
 # Replace flink dist by cloudera version of flink, see:
 # https://repository.cloudera.com/artifactory/libs-release-local/org/apache/flink/flink-dist_2.12/1.13.2-csa1.5.3.1/
 # https://hub.docker.com/layers/apache/flink/1.13.1-java8/images/sha256-f9761595dc8cee49c0c63f5a8658cde47dc5e7b3aef06cd5d3b8d787d68f4bc1?context=explore
@@ -46,6 +36,19 @@ RUN wget -P /opt/flink/lib/ https://repository.cloudera.com/artifactory/cloudera
     wget -P /opt/flink/lib/ https://repository.cloudera.com/artifactory/libs-release-local/org/apache/flink/flink-connector-jdbc_2.12/1.13.2-csa1.5.3.1/flink-connector-jdbc_2.12-1.13.2-csa1.5.3.1.jar; \
     wget -P /opt/flink/lib/ https://repository.cloudera.com/artifactory/libs-release-local/org/apache/flink/flink-csv/1.13.2-csa1.5.3.1/flink-csv-1.13.2-csa1.5.3.1.jar; \
     wget -P /opt/flink/lib/ https://repo.maven.apache.org/maven2/mysql/mysql-connector-java/8.0.19/mysql-connector-java-8.0.19.jar;
+
+
+
+FROM maven:3.6-jdk-8-slim AS builder
+
+COPY ./pom.xml /opt/pom.xml
+COPY ./src /opt/src
+
+# faster rebuilds (~10x?)
+WORKDIR /opt
+RUN --mount=type=cache,target=/root/.m2,rw  mvn clean install -Dmaven.test.skip
+
+FROM cdh-flink
 
 COPY --from=builder /opt/target/spend-report-*.jar /opt/flink/usrlib/spend-report.jar
 
