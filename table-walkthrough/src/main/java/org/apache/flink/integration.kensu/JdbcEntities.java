@@ -7,6 +7,7 @@ import org.apache.flink.connector.jdbc.internal.GenericJdbcSinkFunction;
 import org.apache.flink.connector.jdbc.internal.JdbcBatchingOutputFormat;
 import org.apache.flink.connector.jdbc.internal.connection.JdbcConnectionProvider;
 import org.apache.flink.connector.jdbc.internal.connection.SimpleJdbcConnectionProvider;
+import org.apache.flink.connector.jdbc.internal.executor.JdbcBatchStatementExecutor;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.apache.flink.streaming.api.graph.StreamNode;
 import org.apache.flink.streaming.api.operators.StreamOperator;
@@ -15,6 +16,9 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.table.runtime.operators.sink.SinkOperator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.apache.flink.connector.jdbc.internal.executor.TableSimpleStatementExecutor;
+
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -64,15 +68,13 @@ public class JdbcEntities {
         //sink.toString();
 
         // RunTimeCOntext
-        logInfo("addSinkEntity - jdbcSink:");
-        logVarWithType(jdbcSink);
+        logVarWithType("addSinkEntity - jdbcSink:", jdbcSink);
 
-        logInfo("jdbc:: sink - getOutputFormat:");
-        logVarWithType(sink.getOutputFormat());
+
+        logVarWithType("jdbc:: sink - getOutputFormat:", sink.getOutputFormat());
 
         AbstractJdbcOutputFormat<?> outputFormat = new ReflectHelpers<AbstractJdbcOutputFormat<?>>().reflectGetField(jdbcSink, "outputFormat");
-        logInfo("GenericJdbcSinkFunction.outputFormat from reflect:");
-        logVarWithType(outputFormat);
+        logVarWithType("GenericJdbcSinkFunction.outputFormat from reflect:", outputFormat);
         if (outputFormat != null && outputFormat instanceof JdbcBatchingOutputFormat){
             JdbcBatchingOutputFormat bOutFormat  = (JdbcBatchingOutputFormat) outputFormat;
             // FIXME: field connectionProvider do not exist in org.apache.flink.connector.jdbc.internal.JdbcBatchingOutputFormat@4597e6e3
@@ -87,6 +89,21 @@ public class JdbcEntities {
                     logInfo("KENSU JDBC CONN: getDbURL=%s, driver=%s", jdbcOptions.getDbURL(), jdbcOptions.getDriverName());
                 }
             }
+            // IllegalStateException: The runtime context has not been initialized yet. Try accessing it in one of the other life cycle methods
+            // bOutFormat.getRuntimeContext()
+//            logVarWithType(
+//                    "JdbcBatchingOutputFormat.getRuntimeContext",
+//                    bOutFormat.getRuntimeContext());
+            JdbcBatchStatementExecutor<?> jdbcStatementExecutor = new ReflectHelpers<JdbcBatchStatementExecutor<?>>()
+                    .reflectGetField(bOutFormat, "jdbcStatementExecutor");
+            // this is null - not yet initialized!
+            logVarWithType("jdbcStatementExecutor", jdbcStatementExecutor);
+            if (jdbcStatementExecutor != null){
+                // this private class: import org.apache.flink.connector.jdbc.internal.executor.SimpleBatchStatementExecutor;
+                String maybeSql = new ReflectHelpers<String>().reflectGetField(jdbcStatementExecutor, "sql");
+                logVarWithType("maybeSql", maybeSql);
+            }
+
         }
         // FIXME: still no clue yet how to get schema cleanly....
     }

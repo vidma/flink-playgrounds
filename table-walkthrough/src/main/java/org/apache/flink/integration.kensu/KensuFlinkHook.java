@@ -95,6 +95,8 @@ public class KensuFlinkHook implements JobListener {
 
     @Override
     public void onJobExecuted(@Nullable JobExecutionResult jobExecutionResult, @Nullable Throwable throwable) {
+        // FIXME: could wait until here... so it's all initialized...?
+        // FIXME: what's in the result!
 //        if (throwable != null || jobExecutionResult instanceof DetachedJobExecutionResult) {
 //            return;
 //        }
@@ -136,33 +138,34 @@ public class KensuFlinkHook implements JobListener {
         sinks.forEach(KensuFlinkHook::logSink);
     }
 
-    static void logVarWithType(Object s) {
-        String msg = "";
+    public static void logVarWithType(String varName, Object s) {
+        String msg = varName;
+        if (!varName.equals("")){
+            varName += ":";
+        }
         if (s != null) {
-            msg = " -> " + s.toString() + "[class=" + s.getClass().toString() + "]";
+            msg += s.toString() + "[class=" + s.getClass().toString() + "]";
         } else {
-            msg = " -> null";
+            msg += "<null>";
         }
         KensuFlinkHook.logInfo(msg);
 
     }
 
+    public static void logVarWithType(Object s) {
+        logVarWithType("", s);
+    }
+
     static void logSink(StreamNode s) {
-        KensuFlinkHook.logInfo("sink:");
-        logVarWithType(s);
-        KensuFlinkHook.logInfo("sink input format:");
-        logVarWithType(s.getInputFormat());
-        KensuFlinkHook.logInfo("sink output format:");
-        logVarWithType(s.getOutputFormat());
+        logVarWithType("sink", s);
+        logVarWithType("sink input format", s.getInputFormat());
+        logVarWithType("sink output format", s.getOutputFormat());
     }
 
     static void logSource(StreamNode s) {
-        KensuFlinkHook.logInfo("source:");
-        logVarWithType(s);
-        KensuFlinkHook.logInfo("source input format:");
-        logVarWithType(s.getInputFormat());
-        KensuFlinkHook.logInfo("source output format:");
-        logVarWithType(s.getOutputFormat());
+        logVarWithType("source", s);
+        logVarWithType("source input format", s.getInputFormat());
+        logVarWithType("source output format", s.getOutputFormat());
         s.toString();
     }
 
