@@ -75,7 +75,11 @@ public class JdbcEntities {
         logVarWithType(outputFormat);
         if (outputFormat != null && outputFormat instanceof JdbcBatchingOutputFormat){
             JdbcBatchingOutputFormat bOutFormat  = (JdbcBatchingOutputFormat) outputFormat;
-            //outputFormat.connectionProvider
+            // FIXME: field connectionProvider do not exist in org.apache.flink.connector.jdbc.internal.JdbcBatchingOutputFormat@4597e6e3
+            //bOutFormat.connectionProvider;
+            // jobmanager_1      | org.apache.flink.integration.kensu - logInfo - field connectionProvider do not exist in org.apache.flink.connector.jdbc.internal.JdbcBatchingOutputFormat@4597e6e3,
+            // existingFields: , serialVersionUID, LOG, executionOptions, statementExecutorFactory, jdbcRecordExtractor,
+            // jdbcStatementExecutor, batchCount, closed, scheduler, scheduledFuture, flushException
             JdbcConnectionProvider  jConnProv = new ReflectHelpers<JdbcConnectionProvider>().reflectGetField(outputFormat, "connectionProvider");
             if (jConnProv != null  && jConnProv instanceof SimpleJdbcConnectionProvider){
                 JdbcConnectionOptions jdbcOptions =  new ReflectHelpers<JdbcConnectionOptions>().reflectGetField(jConnProv, "jdbcOptions");
