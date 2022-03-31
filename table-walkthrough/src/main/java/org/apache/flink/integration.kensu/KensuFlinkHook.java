@@ -152,9 +152,9 @@ public class KensuFlinkHook implements JobListener {
 
     }
 
-    public static void logVarWithType(Object s) {
-        logVarWithType("", s);
-    }
+//    public static void logVarWithType(Object s) {
+//        logVarWithType("", s);
+//    }
 
     static void logSink(StreamNode s) {
         logVarWithType("sink", s);
@@ -192,8 +192,7 @@ public class KensuFlinkHook implements JobListener {
         List<String> ret = new ArrayList<>();
 
         String sourceClass = sourceFunction.getClass().getName();
-        logInfo("sourceFunction:");
-        KensuFlinkHook.logVarWithType(sourceFunction);
+        KensuFlinkHook.logVarWithType("sourceFunction", sourceFunction);
 
         if (sourceClass.equals("org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer")) {
             KafkaEntities.addKafkaSourceEntity((FlinkKafkaConsumer<?>) sourceFunction, ret, getMetadataNamespace());

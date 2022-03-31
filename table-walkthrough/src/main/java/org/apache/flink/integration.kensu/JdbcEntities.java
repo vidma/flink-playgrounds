@@ -34,7 +34,7 @@ public class JdbcEntities {
         return sinkClass.equals("org.apache.flink.connector.jdbc.internal.GenericJdbcSinkFunction");
     }
 
-    private static GenericJdbcSinkFunction extractSinkFunction(SinkFunction<?> sinkFunction){
+    public static GenericJdbcSinkFunction extractSinkFunction(SinkFunction<?> sinkFunction){
         if (sinkFunction instanceof GenericJdbcSinkFunction){
             return (GenericJdbcSinkFunction) sinkFunction;
         }
@@ -61,17 +61,19 @@ public class JdbcEntities {
 //        }
     }
 
-    public static void addSinkEntity(SinkFunction<?> sinkFunction, StreamNode sink, List<String> ret) {
-        logInfo("JdbcEntitiesSink:"+sinkFunction.toString() + ":\n");
+    public static void addSinkEntity(SinkFunction<?> sinkFunction, StreamNode sinkNode, List<String> ret) {
+        logInfo("JdbcEntitiesSink node:"+sinkNode.getOperatorName() + ":\n");
         GenericJdbcSinkFunction<?> jdbcSink = extractSinkFunction(sinkFunction);
         if (jdbcSink == null) return;
+
+        JdbcParser$.MODULE$.addSinkEntity(sinkFunction, sinkNode, ret);
         //sink.toString();
 
         // RunTimeCOntext
         logVarWithType("addSinkEntity - jdbcSink:", jdbcSink);
 
 
-        logVarWithType("jdbc:: sink - getOutputFormat:", sink.getOutputFormat());
+        logVarWithType("jdbc:: sink - getOutputFormat:", sinkNode.getOutputFormat());
 
         AbstractJdbcOutputFormat<?> outputFormat = new ReflectHelpers<AbstractJdbcOutputFormat<?>>().reflectGetField(jdbcSink, "outputFormat");
         logVarWithType("GenericJdbcSinkFunction.outputFormat from reflect:", outputFormat);
@@ -79,9 +81,6 @@ public class JdbcEntities {
             JdbcBatchingOutputFormat bOutFormat  = (JdbcBatchingOutputFormat) outputFormat;
             // FIXME: field connectionProvider do not exist in org.apache.flink.connector.jdbc.internal.JdbcBatchingOutputFormat@4597e6e3
             //bOutFormat.connectionProvider;
-            // jobmanager_1      | org.apache.flink.integration.kensu - logInfo - field connectionProvider do not exist in org.apache.flink.connector.jdbc.internal.JdbcBatchingOutputFormat@4597e6e3,
-            // existingFields: , serialVersionUID, LOG, executionOptions, statementExecutorFactory, jdbcRecordExtractor,
-            // jdbcStatementExecutor, batchCount, closed, scheduler, scheduledFuture, flushException
             JdbcConnectionProvider  jConnProv = new ReflectHelpers<JdbcConnectionProvider>().reflectGetField(outputFormat, "connectionProvider");
             if (jConnProv != null  && jConnProv instanceof SimpleJdbcConnectionProvider){
                 JdbcConnectionOptions jdbcOptions =  new ReflectHelpers<JdbcConnectionOptions>().reflectGetField(jConnProv, "jdbcOptions");
