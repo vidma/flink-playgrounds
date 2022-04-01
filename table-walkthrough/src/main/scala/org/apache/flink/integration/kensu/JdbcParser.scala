@@ -34,7 +34,7 @@ final case class DataSource(
 
 object JdbcParser {
 
-  def addSinkEntity(sinkFunction: SinkFunction[_], sinkNode: StreamNode, ret: List[String]): Option[DataSource] = {
+  def addSinkEntity(sinkFunction: SinkFunction[_], sinkNode: StreamNode, ret: List[String]): Unit = {
     println("SCAAALA")
     logVarWithType("SINK FROM SCALA:", sinkNode)
 
@@ -80,12 +80,12 @@ object JdbcParser {
     val fieldsWithTypes = (fieldNames zip types.map(_.toString)).toMap
     println(s"fieldsWithTypes: ${fieldsWithTypes}")
 
-    for {
-      loc <- dbUri
-    } yield DataSource(
-      location = loc.kensuDatabaseUri,
-
-    )
+//    for {
+//      loc <- dbUri
+//    } yield DataSource(
+//      location = loc.kensuDatabaseUri,
+//
+//    )
   }
 
   // FIXME: we need a better impl here, maybe with bytecode modification with ASM5?

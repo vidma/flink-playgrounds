@@ -54,7 +54,7 @@ COPY ./src /opt/src
 
 # faster rebuilds (~10x?)
 WORKDIR /opt
-RUN --mount=type=cache,target=/root/.m2,rw  mvn clean install -Dmaven.test.skip
+RUN --mount=type=cache,target=/root/.m2,rw --mount=type=cache,target=/root/.sbt,rw  mvn clean install -Dmaven.test.skip
 
 FROM cdh-flink AS cdh-table-walkthrough
 

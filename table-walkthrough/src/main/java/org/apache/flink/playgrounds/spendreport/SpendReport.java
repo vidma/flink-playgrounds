@@ -19,6 +19,8 @@
 package org.apache.flink.playgrounds.spendreport;
 
 
+import org.apache.flink.integration.kensu.KensuStatsHelpers$;
+import org.apache.flink.table.api.ApiExpression;
 import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.Table;
 import org.apache.flink.table.api.TableEnvironment;
@@ -31,9 +33,27 @@ import org.slf4j.LoggerFactory;
 import static org.apache.flink.table.api.Expressions.*;
 
 public class SpendReport {
+    public static Table markStatsInput(
+            ApiExpression timeWindowExpression,
+            String[] countDistinctCols,
+            String inputId, // FIXME: make this not needed
+            Table table) {
+        return KensuStatsHelpers$.MODULE$.markStatsInput(timeWindowExpression, countDistinctCols, inputId, table);
+    }
 
     public static Table report(Table transactions) {
-        return transactions.select(
+        return markStatsInput(
+                // statistics window
+                $("transaction_time").floor(TimeIntervalUnit.MINUTE),
+                new String[]{ "account_id" },
+                "input_transactions",
+
+                // "select" expression
+                transactions.select(
+                $("account_id"),
+                $("transaction_time"),
+                $("amount"))
+        ).select(
                 $("account_id"),
                 $("transaction_time").floor(TimeIntervalUnit.HOUR).as("log_ts"),
                 $("amount"))
