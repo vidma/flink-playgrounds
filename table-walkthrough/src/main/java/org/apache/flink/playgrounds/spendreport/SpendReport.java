@@ -37,16 +37,18 @@ public class SpendReport {
             ApiExpression timeWindowExpression,
             String[] countDistinctCols,
             String inputId, // FIXME: make this not needed
+            TableEnvironment tEnv,
             Table table) {
-        return KensuStatsHelpers$.MODULE$.markStatsInput(timeWindowExpression, countDistinctCols, inputId, table);
+        return KensuStatsHelpers$.MODULE$.markStatsInput(timeWindowExpression, countDistinctCols, inputId, tEnv, table);
     }
 
-    public static Table report(Table transactions) {
+    public static Table report(Table transactions, TableEnvironment tEnv) {
         return markStatsInput(
                 // statistics window
                 $("transaction_time").floor(TimeIntervalUnit.MINUTE),
                 new String[]{ "account_id" },
                 "input_transactions",
+                tEnv,
 
                 // "select" expression
                 transactions.select(
@@ -97,6 +99,7 @@ public class SpendReport {
                 ")");
 
         Table transactions = tEnv.from("transactions");
-        report(transactions).executeInsert("spend_report");
+        report(transactions, tEnv)
+                .executeInsert("spend_report");
     }
 }

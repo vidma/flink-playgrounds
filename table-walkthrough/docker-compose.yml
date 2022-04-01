@@ -24,8 +24,12 @@ services:
     hostname: "jobmanager"
     expose:
       - "6123"
+      # fixme: second job for stats, hmm?
+      # blob server ? fixme?
+      - "6124"
     ports:
       - "8082:8081"
+      - "6124:6124"
     # https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/resource-providers/standalone/overview/
     # or try https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/resource-providers/standalone/overview/#starting-a-standalone-cluster-session-mode
     command: /opt/flink/bin/flink run --target local /opt/flink/usrlib/spend-report.jar # need to use minicluster-jobclient instead of EmbeddedJobClient, standalone-job
