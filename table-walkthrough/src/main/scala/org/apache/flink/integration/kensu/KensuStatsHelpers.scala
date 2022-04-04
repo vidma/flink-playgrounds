@@ -172,7 +172,7 @@ object KensuStatsHelpers {
     val printTableSql = s"""CREATE TABLE ${printTableId} (
                        |  ${allAggregations.map(a => s"${a.flinkUniqueName} ${a.dType}").mkString(",\n")}
                        |) WITH (
-                       |  'connector' = 'kensuStatsSink'
+                       |  'connector' = 'kensu-stats-reporter'
                        |)""".stripMargin
 
     // FIXME: can we get tEnv automagically?

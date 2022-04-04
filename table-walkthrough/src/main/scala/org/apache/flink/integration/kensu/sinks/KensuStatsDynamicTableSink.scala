@@ -29,7 +29,7 @@ object KensuStatsDynamicTableSink { // define all options statically
 }
 
 class KensuStatsDynamicTableSink extends DynamicTableSinkFactory {
-  override def factoryIdentifier = "kensuStatsSink" // used for matching to `connector = '...'`
+  override def factoryIdentifier = "kensu-stats-reporter" // used for matching to `connector = '...'`
 
   override def requiredOptions: util.Set[ConfigOption[_]] = {
     val options = new util.HashSet[ConfigOption[_]]()
@@ -82,7 +82,7 @@ class KensuSink extends DynamicTableSink {
   override def getSinkRuntimeProvider(context: DynamicTableSink.Context): DynamicTableSink.SinkRuntimeProvider = new SinkFunctionProvider {
     // FIXME
     val sinkIdentifier = "KensuSink"
-    override def createSinkFunction(): SinkFunction[RowData] = new PrintSinkFunction(sinkIdentifier, false) {
+    override def createSinkFunction(): SinkFunction[RowData] = new PrintSinkFunction[RowData](sinkIdentifier, false) {
     }
   }
 
