@@ -1,0 +1,1 @@
+org.apache.flink.integration.kensu.sinks.KensuStatsDynamicTableSink

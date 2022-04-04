@@ -3,6 +3,7 @@ package org.apache.flink.integration.kensu
 import org.apache.flink.integration.kensu.KensuFlinkHook.{logInfo, logVarWithType}
 import org.apache.flink.integration.kensu.StatsInputsExtractor.extractTableInputs
 import org.apache.flink.integration.kensu.connectors.KafkaConn
+import org.apache.flink.streaming.api.functions.ProcessFunction
 import org.apache.flink.table.api.Expressions.{$, lit}
 import org.apache.flink.table.api.bridge.java.{BatchTableEnvironment, StreamTableEnvironment}
 import org.apache.flink.table.api.internal.TableImpl
@@ -14,6 +15,7 @@ import org.apache.flink.table.operations.utils.QueryOperationDefaultVisitor
 import org.apache.flink.table.types.logical.{BigIntType, TimestampType}
 import org.apache.flink.table.types.{AtomicDataType, CollectionDataType, FieldsDataType, KeyValueDataType}
 import org.apache.flink.types.Row
+import org.apache.flink.util.Collector
 
 import java.util.UUID
 import scala.collection.JavaConverters.{collectionAsScalaIterableConverter, mapAsScalaMapConverter}
@@ -170,7 +172,7 @@ object KensuStatsHelpers {
     val printTableSql = s"""CREATE TABLE ${printTableId} (
                        |  ${allAggregations.map(a => s"${a.flinkUniqueName} ${a.dType}").mkString(",\n")}
                        |) WITH (
-                       |  'connector' = 'print'
+                       |  'connector' = 'kensuStatsSink'
                        |)""".stripMargin
 
     // FIXME: can we get tEnv automagically?
@@ -184,17 +186,27 @@ object KensuStatsHelpers {
       .groupBy($("statsWindow"))
       .select(
         allAggregations.map(_.getAggrExpr): _*
-      ).executeInsert(printTableId)
+      )
+      .executeInsert(printTableId)
     // FIXME: shouldn't be doing this?
-//    import org.apache.flink.table.api.bridge.java.StreamTableEnvironment
-//    import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment
+    import org.apache.flink.table.api.bridge.java.StreamTableEnvironment
+    import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment
 //    val env = StreamExecutionEnvironment.getExecutionEnvironment
 //    tEnv match {
-//      case environment: StreamTableEnvironment =>
-//        val ds = environment.toDataStream(statsQuery)
-//        ds.print(printTableId)
+////      case environment: StreamTableEnvironment =>
+////        val ds = environment.toDataStream(statsQuery)
+////        ds.print(printTableId)
 //      case environment: BatchTableEnvironment =>
-//        statsQuery.execute().print()
+//        //statsQuery.execute().print()
+//        // meh this do not work with Batch environment, only stream
+//        //        tEnv
+//        //          .execute()
+//        //          .process(new ProcessFunction[Row, Row] {
+//        //          // https://nightlies.apache.org/flink/flink-docs-release-1.14/docs/dev/datastream/operators/process_function/
+//        //          override def processElement(i: Row, context: ProcessFunction[Row, Row]#Context, collector: Collector[Row]): Unit = {
+//        //            collector.collect(i)
+//        //          }
+//        //        })
 //      case environment: TableEnvironment =>
 //        Future {
 //          statsQuery.execute().print()
@@ -205,4 +217,3 @@ object KensuStatsHelpers {
     table
   }
 }
-
