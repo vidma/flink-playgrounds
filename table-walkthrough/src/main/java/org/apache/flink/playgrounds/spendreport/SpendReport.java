@@ -20,11 +20,10 @@ package org.apache.flink.playgrounds.spendreport;
 
 
 import org.apache.flink.integration.kensu.KensuStatsHelpers$;
-import org.apache.flink.table.api.ApiExpression;
-import org.apache.flink.table.api.EnvironmentSettings;
-import org.apache.flink.table.api.Table;
-import org.apache.flink.table.api.TableEnvironment;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.table.api.*;
 
+import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.table.expressions.TimeIntervalUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,28 +33,26 @@ import static org.apache.flink.table.api.Expressions.*;
 
 public class SpendReport {
     public static Table markStatsInput(
-            ApiExpression timeWindowExpression,
+            TumbleWithSizeOnTime timeWindowExpression,
             String[] countDistinctCols,
-            String inputId, // FIXME: make this not needed
-            TableEnvironment tEnv,
             Table table) {
-        return KensuStatsHelpers$.MODULE$.markStatsInput(timeWindowExpression, countDistinctCols, inputId, tEnv, table);
+        return KensuStatsHelpers$.MODULE$.markStatsInput(timeWindowExpression, countDistinctCols, table);
     }
 
     public static Table report(Table transactions, TableEnvironment tEnv) {
         return markStatsInput(
-                // statistics window
-                $("transaction_time").floor(TimeIntervalUnit.MINUTE),
-                new String[]{ "account_id" },
-                "input_transactions",
-                tEnv,
+                // statistics aggregation interval window =
+                Tumble.over(lit(1).day()).on($("transaction_time")),
+                // countDistinctCols =
+                new String[]{ "account_id" }, // [optional]
 
-                // "select" expression
+                // original input data "select" expression (used by stats)
                 transactions.select(
                 $("account_id"),
                 $("transaction_time"),
                 $("amount"))
-        ).select(
+        ) // data transformations below:
+                .select(
                 $("account_id"),
                 $("transaction_time").floor(TimeIntervalUnit.HOUR).as("log_ts"),
                 $("amount"))
@@ -69,6 +66,10 @@ public class SpendReport {
     public static void main(String[] args) throws Exception {
         EnvironmentSettings settings = EnvironmentSettings.newInstance().build();
         TableEnvironment tEnv = TableEnvironment.create(settings);
+        // FIXME: changed to StreamTableEnvironment for now, to be able to debug stuff
+//        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+//        StreamTableEnvironment tEnv = StreamTableEnvironment.create(env, settings);
+
         final Logger LOG = LoggerFactory.getLogger(SpendReport.class);
         LOG.info("Starting job");
 

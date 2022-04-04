@@ -18,6 +18,18 @@
 
 version: '2.1'
 services:
+  client:
+    build: .
+    image: cdh-table-walkthrough
+    command: "/opt/flink/bin/flink run -d /opt/flink/usrlib/spend-report.jar"
+    depends_on:
+      - jobmanager
+      - kafka
+    volumes:
+      - ./conf:/opt/flink/conf
+    environment:
+      - JOB_MANAGER_RPC_ADDRESS=jobmanager
+      #- JOB_MANAGER_RPC_ADDRESS=host.docker.internal
   jobmanager:
     image: cdh-table-walkthrough
     build: .
@@ -30,11 +42,17 @@ services:
     ports:
       - "8082:8081"
       - "6124:6124"
+      - "6123:6123"
     # https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/resource-providers/standalone/overview/
     # or try https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/resource-providers/standalone/overview/#starting-a-standalone-cluster-session-mode
-    command: /opt/flink/bin/flink run --target local /opt/flink/usrlib/spend-report.jar # need to use minicluster-jobclient instead of EmbeddedJobClient, standalone-job
+    command: "jobmanager.sh start-foreground"
+    volumes:
+      - ./conf:/opt/flink/conf
+      - /tmp/flink-checkpoints-directory:/tmp/flink-checkpoints-directory
+      - /tmp/flink-savepoints-directory:/tmp/flink-savepoints-directory
     environment:
       - JOB_MANAGER_RPC_ADDRESS=jobmanager
+      #- JOB_MANAGER_RPC_ADDRESS=host.docker.internal
     depends_on:
       - kafka
       - mysql
@@ -46,11 +64,17 @@ services:
       - "6122"
     depends_on:
       - jobmanager
-    command: taskmanager
+    #command: taskmanager
+    command: "taskmanager.sh start-foreground"
     links:
       - jobmanager:jobmanager
+    volumes:
+      - ./conf:/opt/flink/conf
+      - /tmp/flink-checkpoints-directory:/tmp/flink-checkpoints-directory
+      - /tmp/flink-savepoints-directory:/tmp/flink-savepoints-directory
     environment:
       - JOB_MANAGER_RPC_ADDRESS=jobmanager
+     # - JOB_MANAGER_RPC_ADDRESS=host.docker.internal
   zookeeper:
     image: wurstmeister/zookeeper:3.4.6
     ports:
