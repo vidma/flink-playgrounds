@@ -39,6 +39,10 @@ object StatsInputsExtractor {
     Option(s).getOrElse("[null]")
   }
 
+  def nullSafeAny(s: Any): String = {
+    Option(s).map(_.toString).getOrElse("[null]")
+  }
+
   def extractTableInputs(t: TableImpl) = {
     logInfo("TableImpl.explain:")
     t.explain()

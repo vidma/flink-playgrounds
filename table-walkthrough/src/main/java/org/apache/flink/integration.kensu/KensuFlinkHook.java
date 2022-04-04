@@ -42,7 +42,7 @@ public class KensuFlinkHook implements JobListener {
     private String flinkApp;
 //    private AtlasEntity.AtlasEntitiesWithExtInfo entity;
 
-    static void logInfo(String msgFmt, String... params){
+    public static void logInfo(String msgFmt, String... params){
         String msg = String.format(msgFmt, params);
         System.out.println("org.apache.flink.integration.kensu - logInfo - " + msg);
         LOG.warn(msg);
