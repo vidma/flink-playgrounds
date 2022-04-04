@@ -105,7 +105,7 @@ class KensuSink(
               val fieldValue = fieldGetter.getFieldOrNull(rowData)
               org.apache.flink.integration.kensu.KensuFlinkHook.logInfo(
                 s"field ${f.getName}='${nullSafeAny(fieldValue)}' [${f.getType}]")
-              val kensuStatName = f.getName.replace("_ksu_", ".")
+              val kensuStatName = f.getName.replace("_ksu_", ".").stripPrefix(".")
               // FIXME: convert timestamp to int!!!??
               val kensuStatValue = fieldValue match {
                 case t: TimestampData =>
@@ -115,6 +115,7 @@ class KensuSink(
                   // FIXME: log
                   None
               }
+              // FIXME: get datasource name!!! use special column name!? how about orig schema... ?
               org.apache.flink.integration.kensu.KensuFlinkHook.logInfo(
                 s"Extracted kensu stat ${kensuStatName}:'${kensuStatValue}' [${f.getType}]")
               // taskmanager_1     | org.apache.flink.integration.kensu - logInfo - field account_id_ksu_distinct_values='5' [BIGINT]
