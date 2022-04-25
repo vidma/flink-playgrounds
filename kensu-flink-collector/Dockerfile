@@ -86,7 +86,7 @@ COPY ./src /opt/src
 WORKDIR /opt
 RUN --mount=type=cache,target=/root/.m2,rw --mount=type=cache,target=/root/.sbt,rw  mvn clean install -Dmaven.test.skip
 
-FROM cdh-flink AS cdh-kensu-flink-collector-runner
+FROM cdh-flink AS kensu-flink-collector-cdh
 
 # install kensu collector to be autodiscovered by flink
 COPY --from=builder /opt/target/kensu-flink-collector-*.jar /opt/flink/lib/kensu-flink-collector.jar

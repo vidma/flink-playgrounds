@@ -18,7 +18,7 @@
 
 FROM maven:3.6-jdk-8-slim AS tbl-walkthrough-builder
 
-COPY --from=kensuio/cdh-kensu-flink-collector-runner /opt/flink/lib/kensu-flink-collector.jar /opt/lib/kensu-flink-collector.jar
+COPY --from=kensuio/kensu-flink-collector:cdh-latest /opt/flink/lib/kensu-flink-collector.jar /opt/lib/kensu-flink-collector.jar
 COPY ./pom.xml /opt/pom.xml
 COPY ./.scalafmt.conf /opt/.scalafmt.conf
 COPY ./src /opt/src
@@ -27,6 +27,6 @@ COPY ./src /opt/src
 WORKDIR /opt
 RUN --mount=type=cache,target=/root/.m2,rw --mount=type=cache,target=/root/.sbt,rw  mvn clean install -Dmaven.test.skip
 
-FROM kensuio/cdh-kensu-flink-collector-runner
+FROM kensuio/kensu-flink-collector:cdh-latest
 
 COPY --from=tbl-walkthrough-builder /opt/target/spend-report-*.jar /opt/flink/usrlib/spend-report.jar

@@ -2,6 +2,6 @@
 #DOCKER_BUILDKIT=1 docker-compose build
 
 DOCKER_BUILDKIT=1 docker build \
-  --tag kensuio/cdh-kensu-flink-collector-runner \
-  --target cdh-kensu-flink-collector-runner \
+  --tag kensuio/kensu-flink-collector:cdh-latest \
+  --target kensu-flink-collector-cdh \
   .
