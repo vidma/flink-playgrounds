@@ -16,24 +16,55 @@
 # limitations under the License.
 ################################################################################
 
+# see /docker-entrypoint.sh
+
 version: '2.1'
 services:
+  client:
+    build: .
+    image: cdh-table-walkthrough
+    # p.s. kensu collector jar is autodiscovered by flink from /opt/flink/lib/kensu-flink-collector.jar
+    command: "/opt/flink/bin/flink run --detached /opt/flink/usrlib/spend-report.jar"
+    #command: "sleep 1000"
+    #entrypoint: "/bin/bash"
+    depends_on:
+      - jobmanager
+      - kafka
+    volumes:
+      - ./conf:/opt/flink/conf
+    environment:
+      JOB_MANAGER_RPC_ADDRESS: "jobmanager"
+      DAM_INGESTION_URL: "$KENSU_INGESTION_URL"
+      AUTH_TOKEN: "${KENSU_AUTH_TOKEN}"
   jobmanager:
-    image: apache/flink-table-walkthrough:1-FLINK-1.13-scala_2.12
+    image: cdh-table-walkthrough
     build: .
     hostname: "jobmanager"
     expose:
       - "6123"
+      # fixme: second job for stats, hmm?
+      # blob server ? fixme?
+      - "6124"
     ports:
       - "8082:8081"
-    command: standalone-job
+      - "6124:6124"
+      - "6123:6123"
+    # https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/resource-providers/standalone/overview/
+    # or try https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/resource-providers/standalone/overview/#starting-a-standalone-cluster-session-mode
+    command: "jobmanager"
+    volumes:
+      - ./conf:/opt/flink/conf
+      - /tmp/flink-checkpoints-directory:/tmp/flink-checkpoints-directory
+      - /tmp/flink-savepoints-directory:/tmp/flink-savepoints-directory
     environment:
-      - JOB_MANAGER_RPC_ADDRESS=jobmanager
+      JOB_MANAGER_RPC_ADDRESS: "jobmanager"
+      DAM_INGESTION_URL: "$KENSU_INGESTION_URL"
+      AUTH_TOKEN: "${KENSU_AUTH_TOKEN}"
     depends_on:
       - kafka
       - mysql
   taskmanager:
-    image: apache/flink-table-walkthrough:1-FLINK-1.13-scala_2.12
+    image: cdh-table-walkthrough
     build: .
     expose:
       - "6121"
@@ -41,10 +72,17 @@ services:
     depends_on:
       - jobmanager
     command: taskmanager
+    # command: "taskmanager.sh start-foreground"
     links:
       - jobmanager:jobmanager
+    volumes:
+      - ./conf:/opt/flink/conf
+      - /tmp/flink-checkpoints-directory:/tmp/flink-checkpoints-directory
+      - /tmp/flink-savepoints-directory:/tmp/flink-savepoints-directory
     environment:
-      - JOB_MANAGER_RPC_ADDRESS=jobmanager
+      JOB_MANAGER_RPC_ADDRESS: "jobmanager"
+      DAM_INGESTION_URL: "$KENSU_INGESTION_URL"
+      AUTH_TOKEN: "${KENSU_AUTH_TOKEN}"
   zookeeper:
     image: wurstmeister/zookeeper:3.4.6
     ports:
@@ -66,8 +104,17 @@ services:
   data-generator:
       image: apache/data-generator:1
       build: ../docker/data-generator
+      environment:
+        KAFKA_TOPIC: "transactions"
       depends_on:
         - kafka
+  data-generator-two:
+    image: apache/data-generator:1
+    build: ../docker/data-generator
+    environment:
+      KAFKA_TOPIC: "aborted_transactions"
+    depends_on:
+      - kafka
   mysql:
     image: mysql:8.0.19
     command: --default-authentication-plugin=mysql_native_password --secure_file_priv=/data

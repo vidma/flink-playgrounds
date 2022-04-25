@@ -20,12 +20,12 @@ under the License.
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.apache.flink</groupId>
-	<artifactId>spend-report</artifactId>
+	<groupId>io.kensu.flink</groupId>
+	<artifactId>kensu-flink-collector</artifactId>
 	<version>1.0.0</version>
 	<packaging>jar</packaging>
 
-	<name>Flink Walkthrough Table Java</name>
+	<name>Kensu Flink Collector</name>
 	<url>https://flink.apache.org</url>
 
 	<properties>
@@ -61,13 +61,12 @@ under the License.
 	</repositories>
 
 	<dependencies>
+        <!-- kensu scala ingestion collector -->
         <dependency>
-            <artifactId>io.kensu.flink</artifactId>
-            <groupId>kensu-flink-collector</groupId>
-            <version>1.0.0</version>
-            <!-- p.s. system scope is like provided. fixme: this is deprecated way of including a jar -->
-            <scope>system</scope>
-            <systemPath>${basedir}/lib/kensu-flink-collector.jar</systemPath>
+            <groupId>io.kensu.collector</groupId>
+            <artifactId>http-akka-${kensu.collector.akka.version}_2.12</artifactId>
+            <version>${kensu.collector.version}</version>
+            <scope>compile</scope>
         </dependency>
         <!-- kensu -->
         <dependency>
@@ -209,6 +208,19 @@ under the License.
                             <goal>compile</goal>
                         </goals>
                     </execution>
+<!--                    <execution>-->
+<!--                        <id>scala-test-compile</id>-->
+<!--                        <phase>process-test-resources</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>testCompile</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                    <execution>-->
+<!--                        <id>attach-javadocs</id>-->
+<!--                        <goals>-->
+<!--                            <goal>doc-jar</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
                 </executions>
             </plugin>
 
@@ -275,9 +287,9 @@ under the License.
                                 </filter>
                             </filters>
                             <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>org.apache.flink.playgrounds.spendreport.SpendReport</mainClass>
-                                </transformer>
+<!--                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">-->
+<!--                                    <mainClass>org.apache.flink.playgrounds.spendreport.SpendReportScalaExample</mainClass>-->
+<!--                                </transformer>-->
                                 <!-- combine ALL reference.conf files -
                                  this one is important for kensu ingestion scala-client to work (which uses
                                  akka-http underneath) -->

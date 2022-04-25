@@ -36,8 +36,11 @@ public class TransactionSerializer implements Serializer<Transaction> {
     String csv =
         String.format(
             // Avoiding spaces here to workaround FLINK-23073
-            "%s,%s,%s",
-            transaction.accountId, transaction.amount, transaction.timestamp.format(formatter));
+            "%s,%s,%s,%s",
+            transaction.txKind,
+            transaction.accountId,
+            transaction.amount,
+            transaction.timestamp.format(formatter));
 
     return csv.getBytes();
   }

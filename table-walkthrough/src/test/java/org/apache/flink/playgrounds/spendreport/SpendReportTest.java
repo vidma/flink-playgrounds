@@ -69,7 +69,7 @@ public class SpendReportTest {
                         Row.of(5, 273, DATE_TIME.plusMinutes(42)));
 
         try {
-            TableResult results = SpendReport.report(transactions).execute();
+            TableResult results = SpendReport.report(transactions, tEnv).execute();
 
             MatcherAssert.assertThat(
                     materialize(results),

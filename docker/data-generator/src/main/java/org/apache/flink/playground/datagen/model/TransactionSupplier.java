@@ -30,6 +30,11 @@ public class TransactionSupplier implements Supplier<Transaction> {
 
   private final Random generator = new Random();
 
+  private final Iterator<String> txKinds =
+      Stream.generate(() -> Stream.of("regular", "faster"))
+          .flatMap(UnaryOperator.identity())
+          .iterator();
+
   private final Iterator<Long> accounts =
       Stream.generate(() -> Stream.of(1L, 2L, 3L, 4L, 5L))
           .flatMap(UnaryOperator.identity())
@@ -37,7 +42,7 @@ public class TransactionSupplier implements Supplier<Transaction> {
 
   private final Iterator<LocalDateTime> timestamps =
       Stream.iterate(
-              LocalDateTime.of(2000, 1, 1, 1, 0),
+              LocalDateTime.of(2022, 1, 1, 1, 0),
               time -> time.plusMinutes(5).plusSeconds(generator.nextInt(58) + 1))
           .iterator();
 
@@ -47,6 +52,7 @@ public class TransactionSupplier implements Supplier<Transaction> {
     transaction.accountId = accounts.next();
     transaction.amount = generator.nextInt(1000);
     transaction.timestamp = timestamps.next();
+    transaction.txKind = txKinds.next();
 
     return transaction;
   }

@@ -16,17 +16,11 @@
  * limitations under the License.
  */
 
-package org.apache.flink.playground.datagen.model;
+package org.apache.flink.playgrounds.spendreport;
 
-import java.time.LocalDateTime;
+public class UnimplementedException extends RuntimeException {
 
-/** A simple financial transaction. */
-public class Transaction {
-  public String txKind;
-
-  public long accountId;
-
-  public int amount;
-
-  public LocalDateTime timestamp;
+    public UnimplementedException() {
+        super("This method has not yet been implemented");
+    }
 }

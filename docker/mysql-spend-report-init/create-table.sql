@@ -15,8 +15,11 @@
 -- limitations under the License.
 
 CREATE TABLE spend_report (
-	account_id BIGINT NOT NULL,
-	log_ts     TIMESTAMP(3) NOT NULL,
-	amount	   BIGINT NOT NULL,
+    tx_kind            VARCHAR(100) NULL,
+	account_id         BIGINT NOT NULL,
+	log_ts             TIMESTAMP(3) NOT NULL,
+	spent_amount	   BIGINT NOT NULL,
+	refunded_amount	   BIGINT NULL,
+	final_amount	   BIGINT NOT NULL,
 	PRIMARY KEY (account_id, log_ts)
 );

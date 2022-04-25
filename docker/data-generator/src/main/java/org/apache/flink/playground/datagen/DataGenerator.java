@@ -28,9 +28,12 @@ public class DataGenerator {
 
   private static final String KAFKA = "kafka:9092";
 
-  private static final String TOPIC = "transactions";
+  private static final String TOPIC = System.getenv("KAFKA_TOPIC");
 
   public static void main(String[] args) {
+    if (TOPIC == null) {
+      throw new RuntimeException("KAFKA_TOPIC environment variable not provided!");
+    }
     Producer producer = new Producer(KAFKA, TOPIC);
 
     Runtime.getRuntime()
