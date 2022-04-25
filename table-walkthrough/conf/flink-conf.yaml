@@ -25,8 +25,25 @@ taskmanager.memory.process.size: 1728Mb
 taskmanager.numberOfTaskSlots: 1
 
 state.backend: filesystem
-state.checkpoints.dir: file:///tmp/flink-checkpoints-directory
-state.savepoints.dir: file:///tmp/flink-savepoints-directory
+state.checkpoints.dir: file:///tmp
+state.savepoints.dir: file:///tmp
+# FIXME: Sometimes seeing a weird "java.lang.IllegalArgumentException: Time should be non negative" errors which stop all jobs
+# maybe just related to Flink v0.14 (?), or maybe somehow related to particularities how we JOIN operator for already grouped data ?
+# for now just set the restart strategy
+# set the restart strategy to "fixed-delay"
+restart-strategy: fixed-delay
+restart-strategy.fixed-delay.attempts: 10
+restart-strategy.fixed-delay.delay: 10s
+# set the checkpoint mode to EXACTLY_ONCE
+execution.checkpointing.mode: EXACTLY_ONCE
+execution.checkpointing.interval: 1min
+# set the statebackend type to "rocksdb", other available options are "filesystem" and "jobmanager"
+# you can also set the full qualified Java class name of the StateBackendFactory to this option
+# e.g. org.apache.flink.contrib.streaming.state.RocksDBStateBackendFactory
+# state.backend: jobmanager
+# set the checkpoint directory, which is required by the RocksDB statebackend
+# state.checkpoints.dir: file:///tmp/checkpoints/
+
 
 heartbeat.interval: 1000
 heartbeat.timeout: 5000
