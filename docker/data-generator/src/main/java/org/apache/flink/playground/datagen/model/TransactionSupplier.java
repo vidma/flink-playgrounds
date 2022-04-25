@@ -40,18 +40,12 @@ public class TransactionSupplier implements Supplier<Transaction> {
           .flatMap(UnaryOperator.identity())
           .iterator();
 
-  private final Iterator<LocalDateTime> timestamps =
-      Stream.iterate(
-              LocalDateTime.of(2022, 1, 1, 1, 0),
-              time -> time.plusMinutes(5).plusSeconds(generator.nextInt(58) + 1))
-          .iterator();
-
   @Override
   public Transaction get() {
     Transaction transaction = new Transaction();
     transaction.accountId = accounts.next();
     transaction.amount = generator.nextInt(1000);
-    transaction.timestamp = timestamps.next();
+    transaction.timestamp = LocalDateTime.now().minusSeconds(generator.nextInt(5));
     transaction.txKind = txKinds.next();
 
     return transaction;

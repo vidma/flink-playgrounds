@@ -58,7 +58,7 @@ public class SpendReportJava {
         // FIXME: check what happens when no data received within window!
         return markStatsInput(
                 // statistics aggregation interval window =
-                Tumble.over(lit(1).day()).on($("transaction_time")),
+                Tumble.over(lit(5).minute()).on($("transaction_time")),
                 // countDistinctCols =
                 new String[]{ "account_id" }, // [optional]
                 // original input data "select" expression (used by stats)
@@ -118,6 +118,6 @@ public class SpendReportJava {
         kensuExecuteInsert(
                 report(transactions, tEnv),
                 "spend_report",
-                Tumble.over(lit(1).day()).on($("log_ts")));
+                Tumble.over(lit(5).minute()).on($("log_ts")));
     }
 }

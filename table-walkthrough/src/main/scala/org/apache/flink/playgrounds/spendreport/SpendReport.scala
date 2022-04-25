@@ -19,16 +19,15 @@
 package org.apache.flink.playgrounds.spendreport
 
 import org.apache.flink.integration.kensu.KensuStatsHelpers.TableOps
-//import org.apache.flink.table.api._
 import org.apache.flink.table.expressions.TimeIntervalUnit
 import org.slf4j.LoggerFactory
-//import org.apache.flink.table.api.Expressions._
 import org.apache.flink.api.scala._
 import org.apache.flink.table.api._
-//import org.apache.flink.table.api.bridge.scala._
 
 object SpendReport {
   val LOG = LoggerFactory.getLogger(this.getClass)
+
+  val statsComputeInterval = 1.minute
 
   def kensuTrackedTransactionsInput(t: Table) = t
     .select(
@@ -39,7 +38,7 @@ object SpendReport {
       $"transaction_time",
       $"amount"
     ).kensuMarkStatsInput(
-      timeWindowGroupExpression = Tumble.over(1.day).on($"transaction_time"),
+      timeWindowGroupExpression = Tumble.over(statsComputeInterval).on($"transaction_time"),
       countDistinctCols         = Array[String]("account_id", "tx_kind") // [optional]
     )
 
@@ -68,7 +67,7 @@ object SpendReport {
          |    account_id         BIGINT,
          |    amount             BIGINT,
          |    transaction_time   TIMESTAMP(3),
-         |    WATERMARK FOR transaction_time AS transaction_time - INTERVAL '5' SECOND
+         |    WATERMARK FOR transaction_time AS transaction_time - INTERVAL '10' SECOND
          |) WITH (
          |    'connector' = 'kafka',
          |    'topic'     = '${txTable}',
@@ -130,7 +129,7 @@ object SpendReport {
       ).kensuExecuteInsert(
         "spend_report",
         // P.S. java syntax: outStatsTimeWindowExpr = Some(Tumble.over(lit(1).day()).on($("log_ts")))
-        outStatsTimeWindowExpr = Some(Tumble.over(1.day()).on($"log_ts"))
+        outStatsTimeWindowExpr = Some(Tumble.over(statsComputeInterval).on($"log_ts"))
         // window - by column/expr or by current timestamp, selected by end-user
         // datastats.timestamp = always currentTimestamp()
       )

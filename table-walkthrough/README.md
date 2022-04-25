@@ -14,6 +14,18 @@ export KENSU_AUTH_TOKEN="eyJhbG...."
 ./build-and-run.sh
 ```
 
+Open [http://localhost:8082/](http://localhost:8082/) to monitor Flink jobs status
+
+You may modify the stats reporting interval in [./src/main/scala/org/apache/flink/playgrounds/spendreport/SpendReport.scala](./src/main/scala/org/apache/flink/playgrounds/spendreport/SpendReport.scala):
+```scala
+object SpendReport {
+  // the default value of `5.minute` would compute stats over non-overlapping (Tumble) windows of 5 minutes each, taking into account only the  data inside the current window, and would report stats to Kensu at end of each such window
+  // note: time window is based on attribute of an input stream, and thus, just as any stream-based group/window computation, to behave properly it requires the timestamp attribute to respect the WATERMARK provided for the input datasources (which is part of original job/stream being monitored by kensu)
+  val statsComputeInterval = 1.minute
+  ...
+}
+```
+
 Example: Metadata extraction with Kensu helpers from Flink Table API (on regular Flink)
 --------
 
