@@ -27,7 +27,7 @@ import org.apache.flink.table.api._
 object SpendReport {
   val LOG = LoggerFactory.getLogger(this.getClass)
 
-  val statsComputeInterval = 1.minute
+  val statsComputeInterval = sys.env.getOrElse("STATS_COMPUTE_INTERVAL_MINUTES", "5").toInt.minute
 
   def kensuTrackedTransactionsInput(t: Table) = t
     .select(

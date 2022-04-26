@@ -22,7 +22,8 @@ version: '2.1'
 services:
   client:
     build: .
-    image: cdh-table-walkthrough
+    image: kensuio/kensu-flink-collector:cdh-table-walkthrough
+    platform: linux/amd64
     # p.s. kensu collector jar is autodiscovered by flink from /opt/flink/lib/kensu-flink-collector.jar
     command: "/opt/flink/bin/flink run --detached /opt/flink/usrlib/spend-report.jar"
     #command: "sleep 1000"
@@ -36,8 +37,10 @@ services:
       JOB_MANAGER_RPC_ADDRESS: "jobmanager"
       DAM_INGESTION_URL: "$KENSU_INGESTION_URL"
       AUTH_TOKEN: "${KENSU_AUTH_TOKEN}"
+      STATS_COMPUTE_INTERVAL_MINUTES: "${STATS_COMPUTE_INTERVAL_MINUTES:-5}"
   jobmanager:
-    image: cdh-table-walkthrough
+    image: kensuio/kensu-flink-collector:cdh-table-walkthrough
+    platform: linux/amd64
     build: .
     hostname: "jobmanager"
     expose:
@@ -60,11 +63,13 @@ services:
       JOB_MANAGER_RPC_ADDRESS: "jobmanager"
       DAM_INGESTION_URL: "$KENSU_INGESTION_URL"
       AUTH_TOKEN: "${KENSU_AUTH_TOKEN}"
+      STATS_COMPUTE_INTERVAL_MINUTES: "${STATS_COMPUTE_INTERVAL_MINUTES:-5}"
     depends_on:
       - kafka
       - mysql
   taskmanager:
-    image: cdh-table-walkthrough
+    image: kensuio/kensu-flink-collector:cdh-table-walkthrough
+    platform: linux/amd64
     build: .
     expose:
       - "6121"
@@ -116,7 +121,7 @@ services:
     depends_on:
       - kafka
   mysql:
-    image: mysql:8.0.19
+    image: "${MYSQL_IMAGE:-mysql:8.0.19}"
     command: --default-authentication-plugin=mysql_native_password --secure_file_priv=/data
     environment:
       MYSQL_USER: "sql-demo"
