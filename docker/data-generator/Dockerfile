@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM maven:3.6-jdk-8-slim AS builder
+ARG MAVEN_IMAGE=maven:3.8-openjdk-8-slim
+
+FROM ${MAVEN_IMAGE} AS builder
 
 # Get data producer code and compile it
 COPY ./src /opt/data-producer/src

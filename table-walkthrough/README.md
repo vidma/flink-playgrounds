@@ -16,7 +16,7 @@ export KENSU_AUTH_TOKEN="eyJhbG...."
 
 Open [http://localhost:8082/](http://localhost:8082/) to monitor Flink jobs status
 
-You may modify the stats reporting interval in [./src/main/scala/org/apache/flink/playgrounds/spendreport/SpendReport.scala](./src/main/scala/org/apache/flink/playgrounds/spendreport/SpendReport.scala):
+You may modify the stats reporting interval by setting `STATS_COMPUTE_INTERVAL_MINUTES` environment variable or  in [./src/main/scala/org/apache/flink/playgrounds/spendreport/SpendReport.scala](./src/main/scala/org/apache/flink/playgrounds/spendreport/SpendReport.scala):
 ```scala
 object SpendReport {
   // the default value of `5.minute` would compute stats over non-overlapping (Tumble) windows of 5 minutes each, taking into account only the  data inside the current window, and would report stats to Kensu at end of each such window
