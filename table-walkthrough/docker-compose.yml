@@ -108,6 +108,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
   data-generator:
       image: kensuio/kensu-flink-collector:table-walkthrough-kafka-gen
+      platform: linux/amd64
       build: ../docker/data-generator
       environment:
         KAFKA_TOPIC: "transactions"
@@ -115,6 +116,7 @@ services:
         - kafka
   data-generator-two:
     image: kensuio/kensu-flink-collector:table-walkthrough-kafka-gen
+    platform: linux/amd64
     build: ../docker/data-generator
     environment:
       KAFKA_TOPIC: "aborted_transactions"
