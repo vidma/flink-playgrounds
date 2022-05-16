@@ -16,8 +16,8 @@
 # limitations under the License.
 ################################################################################
 
-
-FROM apache/flink:1.14.0-scala_2.12-java8 AS cdh-flink
+# flink 1.14.3 is lowest with ARM8 image
+FROM --platform=$TARGETPLATFORM apache/flink:1.14.4-scala_2.12-java8 AS cdh-flink
 # Replace flink dist by cloudera version of flink, see:
 # https://repository.cloudera.com/artifactory/libs-release-local/org/apache/flink/flink-dist_2.12/1.13.2-csa1.5.3.1/
 # https://hub.docker.com/layers/apache/flink/1.13.1-java8/images/sha256-f9761595dc8cee49c0c63f5a8658cde47dc5e7b3aef06cd5d3b8d787d68f4bc1?context=explore
@@ -47,8 +47,8 @@ RUN wget -P /opt/flink/lib/ https://repository.cloudera.com/artifactory/cloudera
     wget -P /opt/flink/lib/ https://repo.maven.apache.org/maven2/mysql/mysql-connector-java/8.0.19/mysql-connector-java-8.0.19.jar
 
 
-
-FROM maven:3.6-jdk-8-slim AS kensu-maven-sbt-builder
+ARG MAVEN_IMAGE=maven:3.8-openjdk-8-slim
+FROM ${MAVEN_IMAGE} --platform=$BUILDPLATFORM maven:3.6-jdk-8-slim AS kensu-maven-sbt-builder
 
 # install sbt
 RUN apt-get update \
@@ -64,7 +64,7 @@ RUN echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" | tee /etc/ap
           sbt
 
 
-FROM kensu-maven-sbt-builder AS kensu-scala-client-builder
+FROM --platform=$BUILDPLATFORM kensu-maven-sbt-builder AS kensu-scala-client-builder
 # make scala sources accessible to Dockerfile
 # cp -R ../../../dam-client-scala/  dam-client-scala
 COPY ./dam-client-scala /opt/scala-client-src
@@ -76,7 +76,7 @@ WORKDIR /opt/scala-client-src
 RUN --mount=type=cache,target=/root/.m2,rw --mount=type=cache,target=/root/.sbt,rw \
     SCALA_VERSION="2.12.7" AKKA_VERSION="2.5.21" sbt compile publishM2
 
-FROM kensu-scala-client-builder AS builder
+FROM --platform=$BUILDPLATFORM kensu-scala-client-builder AS builder
 
 COPY ./pom.xml /opt/pom.xml
 COPY ./.scalafmt.conf /opt/.scalafmt.conf
@@ -86,7 +86,7 @@ COPY ./src /opt/src
 WORKDIR /opt
 RUN --mount=type=cache,target=/root/.m2,rw --mount=type=cache,target=/root/.sbt,rw  mvn clean install -Dmaven.test.skip
 
-FROM cdh-flink AS kensu-flink-collector-cdh
+FROM --platform=$TARGETPLATFORM cdh-flink AS kensu-flink-collector-cdh
 
 # install kensu collector to be autodiscovered by flink
 COPY --from=builder /opt/target/kensu-flink-collector-*.jar /opt/flink/lib/kensu-flink-collector.jar

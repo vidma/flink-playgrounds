@@ -17,7 +17,7 @@
 ################################################################################
 
 ARG MAVEN_IMAGE=maven:3.8-openjdk-8-slim
-FROM ${MAVEN_IMAGE} AS tbl-walkthrough-builder
+FROM --platform=$BUILDPLATFORM ${MAVEN_IMAGE} AS tbl-walkthrough-builder
 
 COPY --from=kensuio/kensu-flink-collector:cdh-latest /opt/flink/lib/kensu-flink-collector.jar /opt/lib/kensu-flink-collector.jar
 COPY ./pom.xml /opt/pom.xml
@@ -28,6 +28,6 @@ COPY ./src /opt/src
 WORKDIR /opt
 RUN --mount=type=cache,target=/root/.m2,rw --mount=type=cache,target=/root/.sbt,rw  mvn clean install -Dmaven.test.skip
 
-FROM --platform=linux/amd64 kensuio/kensu-flink-collector:cdh-latest
+FROM --platform=$TARGETPLATFORM kensuio/kensu-flink-collector:cdh-latest AS cdh-table-walkthrough
 
 COPY --from=tbl-walkthrough-builder /opt/target/spend-report-*.jar /opt/flink/usrlib/spend-report.jar

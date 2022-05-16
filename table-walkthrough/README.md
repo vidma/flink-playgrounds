@@ -11,6 +11,11 @@ ingestion URL/token can be passed either via flink-conf or via env variable, in 
 ```
 export KENSU_INGESTION_URL=https://sandbox-api.kensuapp.com
 export KENSU_AUTH_TOKEN="eyJhbG...."
+
+# if you didn't modify the code of sample job, run our prebuilt docker images (faster)
+./run.sh
+
+# if you changed the code rebuild the docker images and run them
 ./build-and-run.sh
 ```
 

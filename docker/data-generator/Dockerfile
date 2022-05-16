@@ -24,7 +24,7 @@ COPY ./pom.xml /opt/data-producer/pom.xml
 RUN cd /opt/data-producer; \
     mvn clean install
 
-FROM openjdk:8-jre
+FROM --platform=$TARGETPLATFORM openjdk:8-jre AS table-walkthrough-kafka-gen
 
 COPY --from=builder /opt/data-producer/target/data-generator-*.jar /opt/data-generator.jar
 
